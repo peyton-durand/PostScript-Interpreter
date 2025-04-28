@@ -7,6 +7,7 @@ dict_stack     = core.dict_stack
 StackUnderflow = core.StackUnderflow
 TypeMismatch   = core.TypeMismatch
 
+from ps_interpreter.parser import process_input
 
 # OPERATIONS -------------------------------------------------------------------------------------------
 
@@ -390,11 +391,108 @@ def not_operation():
         op_stack.append(res)
     else:
         raise StackUnderflow("Need 1 operand for not.")
-# Flow Control
+    
+def or_operation():
+    if len(op_stack) < 2:
+        raise StackUnderflow("Need 2 operands for or.")
+    op2 = op_stack.pop()
+    op1 = op_stack.pop()
+    if isinstance(op1, bool) and isinstance(op2, bool):
+        res = op1 or op2
+    elif isinstance(op1, int)  and isinstance(op2, int):
+        res = op1 | op2
+    else:
+        raise TypeMismatch("Operands must both be ints or bools for or.")
+    op_stack.append(res)
 
+# Flow Control
+def if_operation():
+    if len(op_stack) < 2:
+        raise StackUnderflow("Need 2 operands for if.")
+    proc = op_stack.pop()
+    cond = op_stack.pop()
+    if not isinstance(proc, list):
+        raise TypeMismatch("Second operand to if must be a code block.")
+    if not isinstance(cond, bool):
+        raise TypeMismatch("First operand to if must be a boolean.")
+    if cond:
+        for tok in proc:
+            process_input(tok)
+
+def ifelse_operation():
+    if len(op_stack) < 3:
+        raise StackUnderflow("Need 3 operands for ifelse.")
+    proc2 = op_stack.pop()
+    proc1 = op_stack.pop()
+    cond  = op_stack.pop()
+    if not (isinstance(proc1, list) and isinstance(proc2, list)):
+        raise TypeMismatch("Both branches to ifelse must be code blocks.")
+    if not isinstance(cond, bool):
+        raise TypeMismatch("First operand to ifelse must be a boolean.")
+    chosen = proc1 if cond else proc2
+    for tok in chosen:
+        process_input(tok)
+
+def repeat_operation():
+    if len(op_stack) < 2:
+        raise StackUnderflow("Need 2 operands for repeat.")
+    proc = op_stack.pop()
+    count = op_stack.pop()
+    if not isinstance(proc, list):
+        raise TypeMismatch("Second operand to repeat must be a code block.")
+    if not isinstance(count, int):
+        raise TypeMismatch("First operand to repeat must be an integer.")
+    for _ in range(count):
+        for tok in proc:
+            process_input(tok)
+
+def for_operation():
+    if len(op_stack) < 4:
+        raise StackUnderflow("Need 4 operands for for.")
+    proc = op_stack.pop()
+    limit = op_stack.pop()
+    step  = op_stack.pop()
+    init  = op_stack.pop()
+    if not isinstance(proc, list):
+        raise TypeMismatch("Fourth operand to for must be a code block.")
+    if not all(isinstance(x, (int,float)) for x in (init,step,limit)):
+        raise TypeMismatch("First three operands to for must be numbers.")
+    i = init
+    if step > 0:
+        cond = lambda v: v <= limit
+    else:
+        cond = lambda v: v >= limit
+    while cond(i):
+        op_stack.append(i)
+        for tok in proc:
+            process_input(tok)
+        i += step
 
 # Input and Output
+def print_operation():
+    if len(op_stack) < 1:
+        raise StackUnderflow("Need 1 operand for print.")
+    s = op_stack.pop()
+    if not isinstance(s, str):
+        raise TypeMismatch("Operand to print must be a string.")
+    print(s, end='')
 
+def equal_operation():
+    # single‐equals prints the “PostScript‐ish” value
+    if len(op_stack) < 1:
+        raise StackUnderflow("Need 1 operand for =.")
+    v = op_stack.pop()
+    print(v)
+
+def double_eq_operation():
+    # double‐equals prints a PostScript literal form
+    if len(op_stack) < 1:
+        raise StackUnderflow("Need 1 operand for ==.")
+    v = op_stack.pop()
+    if isinstance(v, str):
+        print(f"({v})")
+    else:
+        print(v)
 
 
 # DICTIONARY BATCH REGISTRATION ------------------------------------------------------------------------
@@ -432,10 +530,24 @@ operations = {
     "getinterval":  getinterval_operation,
     "putinterval":  putinterval_operation,
     # bit and boolean operations
-
+    "eq":  eq_operation,
+    "ne":  ne_operation,
+    "ge":  ge_operation,
+    "gt":  gt_operation,
+    "le":  le_operation,
+    "lt":  lt_operation,
+    "and": and_operation,
+    "not": not_operation,
+    "or":  or_operation,
     # flow control
-
+    "if":        if_operation,
+    "ifelse":    ifelse_operation,
+    "repeat":    repeat_operation,
+    "for":       for_operation,
     # input and output
+    "print":     print_operation,
+    "=":         equal_operation,
+    "==":        double_eq_operation,
 }
 
 dict_stack[-1].update(operations)

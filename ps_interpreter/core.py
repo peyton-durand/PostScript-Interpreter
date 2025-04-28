@@ -1,8 +1,15 @@
 import re
 import logging
-import argparse
 
 logging.basicConfig(level = logging.DEBUG)
+
+lexical_scoping = False
+
+class CodeBlock:
+    def __init__(self, tokens, env):
+        self.tokens = tokens
+        # shallow‐copy each dict so subsequent changes to the global stack won’t bleed in
+        self.env = [d.copy() for d in env]
 
 op_stack = [] # operand stack
 dict_stack = [] # dictionary stack
@@ -47,8 +54,10 @@ def tokenize(line):
     return tokens # returns the list of tokens
 
 def repl():
+    # prompt changes based on the scoping mode
+    prompt = "lexical REPL> " if lexical_scoping else "REPL> "
     while True:
-        line = input("REPL> ") # reads in the user entered line
+        line = input(prompt) # reads in the user entered line
         if line.lower() == "quit": # checks for user trying to exit
             break
         for tok in tokenize(line): # loops through the list of tokens produced by tokenize
@@ -61,6 +70,4 @@ def repl():
 # import operators
 import ps_interpreter.operations
 
-# entry point
-if __name__ == "__main__":
-    repl()
+# entry point is now handled by __init__.py

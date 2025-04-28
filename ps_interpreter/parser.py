@@ -1,5 +1,6 @@
 import logging
-from ps_interpreter.core import op_stack, dict_stack, ParseFailed, TypeMismatch
+import ps_interpreter.core as core
+from ps_interpreter.core import CodeBlock, op_stack, dict_stack, ParseFailed, TypeMismatch
 
 
 # PARSER FUNCTIONS ---------------------------------------------------------------
@@ -32,7 +33,11 @@ def process_number(input):
 def process_code_block(input):
     logging.debug(f"Input to process code block: {input}")
     if len(input) >= 2 and input.startswith("{") and input.endswith("}"):
-        return input[1:-1].strip().split()
+        toks = input[1:-1].strip().split()
+        # capture current dict‐stack for lexical scoping later
+        env_snapshot = dict_stack.copy()
+        # return the CodeBlock, let process_constants append it
+        return CodeBlock(toks, env_snapshot)
     else:
         raise ParseFailed("can't parse this into a code block")
 
@@ -74,18 +79,36 @@ def process_constants(input):
             continue
     raise ParseFailed(f"Not a literal: {input}")
 
-def lookup_in_dictionary(input):
-    top_dict = dict_stack[-1]
-    if input not in top_dict:
-        raise ParseFailed(f"input {input} is not in dictionary")
-    value = top_dict[input]
+def lookup_in_dictionary(token):
+    # 1) find value via dynamic lookup
+    for d in reversed(dict_stack):
+        if token in d:
+            value = d[token]
+            break
+    else:
+        raise ParseFailed(f"Undefined token: {token}")
+
+    # 2) callable?
     if callable(value):
         return value()
-    if isinstance(value, list):
-        for item in value:
-            process_input(item)
-    else:
-        op_stack.append(value)
+
+    # 3) code block?
+    if isinstance(value, CodeBlock):
+        if core.lexical_scoping:
+            # swap in the block’s env
+            old_stack = dict_stack[:] 
+            dict_stack[:] = [d.copy() for d in value.env]
+            for t in value.tokens:
+                process_input(t)
+            dict_stack[:] = old_stack
+        else:
+            # dynamic
+            for t in value.tokens:
+                process_input(t)
+        return
+
+    # 4) literal
+    op_stack.append(value)
 
 
 def process_input(token):
