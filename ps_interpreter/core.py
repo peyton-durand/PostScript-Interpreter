@@ -31,7 +31,7 @@ class StackUnderflow(Exception):
         super().__init__(message)
 
 
-# repl and input processing --------------------------------------------------------------------------------------
+# repl and input processing ------------------------------------------------------------------------------------
 from ps_interpreter.parser import process_input
 
 # regex
