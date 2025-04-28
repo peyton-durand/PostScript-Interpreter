@@ -1,9 +1,17 @@
-Python PostScript Interpreter
+# Python PostScript Interpreter
 
-Description of dynamic vs lexical scoping flag.
+## Running the Interpreter
 
-PostScript command subset.
+text
 
-Quick-start guide: "pip install -e ." "python -m ps_interpreter"
+## Toggling Scoping
 
-How to run tests adn toggle scope.
+text
+
+## Quick Start
+
+text
+
+## Running Tests
+
+text
