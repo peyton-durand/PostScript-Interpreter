@@ -2,6 +2,7 @@
 import math
 import ps_interpreter.core as core
 
+PSDict         = core.PSDict
 op_stack       = core.op_stack
 dict_stack     = core.dict_stack
 StackUnderflow = core.StackUnderflow
@@ -175,17 +176,12 @@ def sqrt_operation():
 
 # Dictionary
 def dict_operation():
-    if len(op_stack) >= 1:
-        n = op_stack.pop()
-        if isinstance(n, int):
-            if n >= 0:
-                op_stack.append({}) # python doesn't need to pre-size a dictionary so the hint is ignored
-            else:
-                raise ValueError("Negative size for dict.")
-        else:
-            raise TypeMismatch("Operand must be integer for dict.")
-    else:
+    if len(op_stack) < 1:
         raise StackUnderflow("Need 1 operand for dict.")
+    n = op_stack.pop()
+    if not isinstance(n, int) or n < 0:
+        raise TypeMismatch("Operand must be non-negative integer for dict.")
+    op_stack.append(PSDict(n))
 
 def length_operation(): # can be used for string also
     if len(op_stack) >= 1:
@@ -198,14 +194,15 @@ def length_operation(): # can be used for string also
         raise StackUnderflow("Need 1 operand for length.")
 
 def maxlength_operation():
-    if len(op_stack) >= 1:
-        obj = op_stack.pop()
-        if isinstance(obj, (str, list, dict)):
-            op_stack.append(len(obj))
-        else:
-            raise TypeMismatch("Unsupported type for maxlength.")
-    else:
+    if len(op_stack) < 1:
         raise StackUnderflow("Need 1 operand for maxlength.")
+    obj = op_stack.pop()
+    if isinstance(obj, PSDict):
+        op_stack.append(obj.maxlength)
+    elif isinstance(obj, (str, list, dict)):
+        op_stack.append(len(obj))
+    else:
+        raise TypeMismatch("Unsupported type for maxlength.")
 
 def begin_operation():
     if len(op_stack) >= 1:

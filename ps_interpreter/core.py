@@ -5,6 +5,11 @@ logging.basicConfig(level = logging.DEBUG)
 
 lexical_scoping = False
 
+class PSDict(dict):
+    def __init__(self, capacity):
+        super().__init__()
+        self.maxlength = capacity
+
 class CodeBlock:
     def __init__(self, tokens, env):
         self.tokens = tokens
