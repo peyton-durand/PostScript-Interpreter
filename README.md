@@ -33,3 +33,7 @@ The prompt will indicate the mode:
 ## Running Tests
 
 text
+
+## Command Subset
+
+[PostScript command subset.docx](https://github.com/user-attachments/files/19951626/PostScript.command.subset.docx)
