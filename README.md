@@ -9,8 +9,8 @@ A minimal PostScript‑like interpreter in Python supporting a defined subset of
 
 ## Setup and Installation
 
-1. Clone the repository.
-2. (Optional) Create and activate a virtual environment.
+1. Clone the repository
+2. (Optional) Create and activate a virtual environment
 3. Install dependencies via requirements.txt
 
 ## Running the Interpreter
