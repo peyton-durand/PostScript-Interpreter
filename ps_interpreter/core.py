@@ -1,7 +1,7 @@
 import re
 import logging
 
-logging.basicConfig(level = logging.DEBUG)
+logging.basicConfig(level = logging.ERROR)
 
 lexical_scoping = False
 

@@ -32,7 +32,7 @@ The prompt will indicate the mode:
 
 ## Running Tests
 
-text
+```python3 -m pytest```
 
 ## Command Subset
 
