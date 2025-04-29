@@ -1,8 +1,8 @@
-# ignore .venv files
+# ignore .venv folder
 .venv/
 
 # ignore __pycache__ folder
 __pycache__/
 
-# ignore .pytest_cache
+# ignore .pytest_cache folder
 /pytest_cache/
